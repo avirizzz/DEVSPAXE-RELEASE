@@ -139,7 +139,7 @@ export default function SettingsView({ session, onClose }) {
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-2">Email Address (Read Only)</label>
                 <div className="text-sm text-gray-400 bg-white/[0.02] px-4 py-2.5 rounded-lg border border-white/[0.05] w-full cursor-not-allowed">
-                  {userEmail || 'developer@note.dev'}
+                  {userEmail || <span className="font-code font-bold">developer@DEVSPAXE.com</span>}
                 </div>
               </div>
               

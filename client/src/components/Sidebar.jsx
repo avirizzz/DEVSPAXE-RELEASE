@@ -75,7 +75,11 @@ export default function Sidebar({
   onToggleCollapse,
   onGoHome,
   viewMode,
-  onViewModeChange
+  onViewModeChange,
+  roadmaps,
+  setRoadmaps,
+  activeRoadmapId,
+  setActiveRoadmapId
 }) {
   const [expandedNotebooks, setExpandedNotebooks] = useState({});
   const [notebookNotes, setNotebookNotes] = useState({});
@@ -88,6 +92,8 @@ export default function Sidebar({
   const editRef = useRef(null);
 
   const [expandedSubjects, setExpandedSubjects] = useState({});
+  const [sharedNotes, setSharedNotes] = useState([]);
+  const [expandedShared, setExpandedShared] = useState(true);
 
 
 
@@ -97,6 +103,13 @@ export default function Sidebar({
       setSubjects(subData);
       const nbData = await api.getNotebooks();
       setNotebooks(nbData);
+      
+      try {
+        const sharedData = await api.getSharedNotes();
+        setSharedNotes(sharedData);
+      } catch (err) {
+        console.error('Failed to load shared notes:', err);
+      }
       
       // Auto-expand first subject if exists
       if (subData.length > 0 && Object.keys(expandedSubjects).length === 0) {
@@ -204,12 +217,16 @@ export default function Sidebar({
       // Check if it's a subject, notebook, or note
       const isSubject = subjects.some(s => s.id === editingId);
       const isNotebook = notebooks.some(nb => nb.id === editingId);
+      const isRoadmap = roadmaps.some(r => r.id === editingId);
       if (isSubject) {
         await api.renameSubject(editingId, editingValue.trim());
         setSubjects(prev => prev.map(s => s.id === editingId ? { ...s, title: editingValue.trim() } : s));
       } else if (isNotebook) {
         await api.renameNotebook(editingId, editingValue.trim());
         setNotebooks(prev => prev.map(nb => nb.id === editingId ? { ...nb, title: editingValue.trim() } : nb));
+      } else if (isRoadmap) {
+        await api.renameRoadmap(editingId, editingValue.trim());
+        setRoadmaps(prev => prev.map(r => r.id === editingId ? { ...r, title: editingValue.trim() } : r));
       } else {
         await api.renameNote(editingId, editingValue.trim());
         // Update in notebookNotes
@@ -238,6 +255,10 @@ export default function Sidebar({
         // Notebooks with this subject_id might cascade delete depending on SQL
         // We can just reload data
         loadData();
+      } else if (type === 'roadmap') {
+        await api.deleteRoadmap(id);
+        setRoadmaps(prev => prev.map(r => r).filter(r => r.id !== id));
+        if (activeRoadmapId === id) setActiveRoadmapId(null);
       } else if (type === 'notebook') {
         await api.deleteNotebook(id);
         setNotebooks(prev => prev.filter(nb => nb.id !== id));
@@ -351,6 +372,16 @@ export default function Sidebar({
           <button onClick={(e) => { e.stopPropagation(); handleCreateNote(nb.id); }} className="p-0.5 hover:text-primary" title="New Note">
             <FilePlus size={12} />
           </button>
+          <button onClick={async (e) => { 
+            e.stopPropagation(); 
+            const nr = await api.createRoadmap('New Roadmap', nb.subject_id, nb.id);
+            if(setRoadmaps) setRoadmaps(prev => [...prev, nr]);
+            setActiveRoadmapId(nr.id);
+            setActiveNotebookId(nb.id);
+            onViewModeChange('roadmap');
+          }} className="p-0.5 hover:text-primary" title="New Roadmap">
+            <LayoutGrid size={12} />
+          </button>
           <button onClick={(e) => { e.stopPropagation(); setContextMenu({ id: nb.id, type: 'notebook', x: e.clientX, y: e.clientY }); }} className="p-0.5 hover:text-primary">
             <MoreHorizontal size={12} />
           </button>
@@ -367,7 +398,7 @@ export default function Sidebar({
               className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-xs cursor-pointer group transition-colors ${
                 activeNoteId === note.id ? 'bg-primary/10 text-primary border border-primary/20' : 'text-gray-500 hover:text-primary-text hover:bg-surface-hover border border-transparent'
               }`}
-              onClick={() => { setActiveNotebookId(nb.id); setActiveNoteId(note.id); }}
+              onClick={() => { setActiveNotebookId(nb.id); setActiveNoteId(note.id); onViewModeChange('editor'); }}
               onContextMenu={(e) => { e.preventDefault(); setContextMenu({ id: note.id, type: 'note', notebookId: nb.id, x: e.clientX, y: e.clientY }); }}
             >
               <FileText size={12} className="shrink-0" />
@@ -390,6 +421,35 @@ export default function Sidebar({
               </div>
             </div>
           ))}
+          {(roadmaps || []).filter(r => r.notebook_id === nb.id).map(r => (
+            <div
+              key={r.id}
+              className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-xs cursor-pointer group transition-colors ${
+                activeRoadmapId === r.id && viewMode === 'roadmap' ? 'bg-primary/10 text-primary border border-primary/20' : 'text-gray-500 hover:text-primary-text hover:bg-surface-hover border border-transparent'
+              }`}
+              onClick={() => { setActiveRoadmapId(r.id); setActiveNotebookId(nb.id); setActiveNoteId(null); onViewModeChange('roadmap'); }}
+              onContextMenu={(e) => { e.preventDefault(); setContextMenu({ id: r.id, type: 'roadmap', x: e.clientX, y: e.clientY }); }}
+            >
+              <LayoutGrid size={12} className="shrink-0" />
+              {editingId === r.id ? (
+                <input
+                  ref={editRef}
+                  className="flex-1 bg-transparent border-b border-primary/50 outline-none text-primary-text text-xs"
+                  value={editingValue}
+                  onChange={(e) => setEditingValue(e.target.value)}
+                  onBlur={handleRenameSubmit}
+                  onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()}
+                />
+              ) : (
+                <span className="truncate flex-1">{r.title}</span>
+              )}
+              <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
+                <button onClick={(e) => { e.stopPropagation(); setContextMenu({ id: r.id, type: 'roadmap', x: e.clientX, y: e.clientY }); }} className="p-0.5 hover:text-primary">
+                  <MoreHorizontal size={12} />
+                </button>
+              </div>
+            </div>
+          ))}
           {(notebookNotes[nb.id] || []).length === 0 && (
             <button onClick={() => handleCreateNote(nb.id)} className="w-full text-left text-xs text-gray-600 hover:text-gray-400 px-2 py-1 transition-colors">
               + Add a note
@@ -406,10 +466,11 @@ export default function Sidebar({
       <div className={`h-14 px-3 flex items-center border-b border-app-border shrink-0 whitespace-nowrap ${collapsed ? 'justify-center' : 'justify-between'}`}>
         {!collapsed && (
           <div className="flex items-center gap-2 overflow-hidden cursor-pointer" onClick={onGoHome}>
-            <div className="bg-primary text-black rounded p-1 shrink-0">
-              <Code2 size={18} />
+            <div className="flex items-center gap-2 px-1 py-1">
+              <div className="w-48 h-10 overflow-hidden flex items-center justify-center">
+                <img src="/logo.png" alt="Logo" className="w-[220px] max-w-none mix-blend-screen" />
+              </div>
             </div>
-            <span className="font-bold text-base tracking-tight text-primary-text">note.dev</span>
           </div>
         )}
         {!collapsed && (
@@ -461,16 +522,7 @@ export default function Sidebar({
       {/* View Toggles */}
       {!collapsed && (
         <div className="px-3 pb-2 shrink-0 flex gap-2">
-          <button
-            onClick={() => onViewModeChange && onViewModeChange(viewMode === 'roadmap' ? 'editor' : 'roadmap')}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
-              viewMode === 'roadmap'
-                ? 'bg-primary/10 text-primary border border-primary/20'
-                : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.03] border border-transparent'
-            }`}
-          >
-            <LayoutGrid size={12} /> Roadmap
-          </button>
+          
           <button
             onClick={() => onViewModeChange && onViewModeChange(viewMode === 'graph' ? 'editor' : 'graph')}
             className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
@@ -485,13 +537,7 @@ export default function Sidebar({
       )}
       {collapsed && (
         <div className="px-2 pb-2 shrink-0 flex flex-col items-center gap-2">
-          <button
-            onClick={() => onViewModeChange && onViewModeChange(viewMode === 'roadmap' ? 'editor' : 'roadmap')}
-            className={`p-2 rounded-lg transition-colors ${viewMode === 'roadmap' ? 'text-primary bg-primary/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-            title="Roadmap"
-          >
-            <LayoutGrid size={14} />
-          </button>
+          
           <button
             onClick={() => onViewModeChange && onViewModeChange(viewMode === 'graph' ? 'editor' : 'graph')}
             className={`p-2 rounded-lg transition-colors ${viewMode === 'graph' ? 'text-primary bg-primary/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
@@ -518,6 +564,7 @@ export default function Sidebar({
                     setActiveNoteId(r.id);
                     handleSelectNotebook(r.notebook_id);
                     setSearchQuery('');
+                    if (onViewModeChange) onViewModeChange('editor');
                   }}
                   className="w-full text-left px-2 py-1.5 text-xs rounded-md hover:bg-surface-hover text-gray-300 flex items-center gap-2 transition-colors"
                 >
@@ -553,11 +600,49 @@ export default function Sidebar({
                   <button onClick={() => handleCreateNotebook(activeSubjectId)} className="text-gray-500 hover:text-primary transition-colors" title="New Notebook in Subject">
                     <FolderPlus size={14} />
                   </button>
+                  <button onClick={async (e) => { 
+                    e.stopPropagation(); 
+                    const nr = await api.createRoadmap('New Roadmap', activeSubjectId, null);
+                    if(setRoadmaps) setRoadmaps(prev => [...prev, nr]);
+                    setActiveRoadmapId(nr.id);
+                    onViewModeChange('roadmap');
+                  }} className="text-gray-500 hover:text-primary transition-colors" title="New Roadmap in Subject">
+                    <LayoutGrid size={14} />
+                  </button>
                 </div>
               )}
             </div>
             <div className="px-2 space-y-1">
               {notebooks.filter(nb => nb.subject_id === activeSubjectId).map(nb => renderNotebook(nb))}
+              {(roadmaps || []).filter(r => r.subject_id === activeSubjectId && !r.notebook_id).map(r => (
+                <div
+                  key={r.id}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs cursor-pointer group transition-colors ${
+                    activeRoadmapId === r.id && viewMode === 'roadmap' ? 'bg-primary/10 text-primary border border-primary/20' : 'text-gray-400 hover:text-primary-text hover:bg-surface-hover border border-transparent'
+                  }`}
+                  onClick={() => { setActiveRoadmapId(r.id); setActiveNoteId(null); onViewModeChange('roadmap'); }}
+                  onContextMenu={(e) => { e.preventDefault(); setContextMenu({ id: r.id, type: 'roadmap', x: e.clientX, y: e.clientY }); }}
+                >
+                  <LayoutGrid size={14} className="shrink-0" />
+                  {editingId === r.id ? (
+                    <input
+                      ref={editRef}
+                      className="flex-1 bg-transparent border-b border-primary/50 outline-none text-primary-text text-xs"
+                      value={editingValue}
+                      onChange={(e) => setEditingValue(e.target.value)}
+                      onBlur={handleRenameSubmit}
+                      onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()}
+                    />
+                  ) : (
+                    <span className="truncate flex-1">{r.title}</span>
+                  )}
+                  <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
+                    <button onClick={(e) => { e.stopPropagation(); setContextMenu({ id: r.id, type: 'roadmap', x: e.clientX, y: e.clientY }); }} className="p-0.5 hover:text-primary">
+                      <MoreHorizontal size={12} />
+                    </button>
+                  </div>
+                </div>
+              ))}
               {notebooks.filter(nb => nb.subject_id === activeSubjectId).length === 0 && !collapsed && (
                 <button onClick={() => handleCreateNotebook(activeSubjectId)} className="w-full text-left text-xs text-gray-600 hover:text-gray-400 px-4 py-1 transition-colors">
                   + Add a notebook
@@ -586,6 +671,42 @@ export default function Sidebar({
               )}
             </div>
           </>
+        )}
+
+        {/* Shared Notes Section */}
+        {sharedNotes.length > 0 && (
+          <div className="mt-4">
+            <div 
+              className={`px-4 py-1.5 flex items-center justify-between cursor-pointer group hover:bg-surface-hover ${collapsed ? 'justify-center' : ''}`}
+              onClick={() => setExpandedShared(!expandedShared)}
+            >
+              {!collapsed && (
+                <div className="flex items-center gap-2 text-gray-500 group-hover:text-gray-300 transition-colors">
+                  {expandedShared ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  <span className="text-[10px] font-bold tracking-wider uppercase">Shared With Me</span>
+                </div>
+              )}
+              {collapsed && <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">S</span>}
+            </div>
+            
+            {expandedShared && (
+              <div className="px-2 space-y-1">
+                {sharedNotes.map(note => (
+                  <div
+                    key={note.id}
+                    className={`flex items-center gap-2 pl-6 pr-4 py-1.5 rounded-md text-xs cursor-pointer group transition-colors ${
+                      activeNoteId === note.id ? 'bg-primary/20 text-primary border border-primary/30' : 'text-gray-400 hover:text-white hover:bg-surface-hover border border-transparent'
+                    }`}
+                    onClick={() => { setActiveNoteId(note.id); onViewModeChange('editor'); }}
+                  >
+                    <FileText size={12} className="shrink-0" />
+                    <span className="truncate flex-1">{note.title}</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/30 text-gray-500 capitalize">{note.collaborator_role}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

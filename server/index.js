@@ -26,7 +26,7 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'note.dev API is running' });
+  res.json({ status: 'ok', message: 'DEVSPAXE API is running' });
 });
 
 function runCommand(command) {
@@ -90,5 +90,5 @@ app.post('/api/execute', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`note.dev server running on port ${PORT}`);
+  console.log(`DEVSPAXE server running on port ${PORT}`);
 });

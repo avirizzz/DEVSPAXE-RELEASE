@@ -130,7 +130,7 @@ const DIAGRAM_TEMPLATES = {
   }
 };
 
-export default function DiagramBlock({ block, onUpdate }) {
+export default function DiagramBlock({ block, onUpdate, readOnly = false }) {
   const { promptAsync } = useDialog();
   const diagramType = block.content?.diagramType || 'stack';
   const rawData = block.content?.data;
@@ -231,14 +231,24 @@ export default function DiagramBlock({ block, onUpdate }) {
       <div className="flex items-center justify-between px-3 py-2 bg-surface-bg border-b border-app-border">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Diagram</span>
-          <DiagramTypeSelector current={diagramType} onChange={setDiagramType} />
-          <input
-            type="text"
-            placeholder="Name this block..."
-            value={block.content?.title || ''}
-            onChange={(e) => onUpdate({ content: { ...block.content, title: e.target.value } })}
-            className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 ml-2 w-32 focus:text-gray-200 transition-colors"
-          />
+          {readOnly ? (
+            <span className="text-xs font-semibold text-primary px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5">
+              {DIAGRAM_TEMPLATES[diagramType]?.label || 'Diagram'}
+            </span>
+          ) : (
+            <DiagramTypeSelector current={diagramType} onChange={setDiagramType} />
+          )}
+          {readOnly ? (
+            block.content?.title ? <span className="text-xs text-gray-400 ml-2">{block.content.title}</span> : null
+          ) : (
+            <input
+              type="text"
+              placeholder="Name this block..."
+              value={block.content?.title || ''}
+              onChange={(e) => onUpdate({ content: { ...block.content, title: e.target.value } })}
+              className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 ml-2 w-32 focus:text-gray-200 transition-colors"
+            />
+          )}
         </div>
         <div className="flex items-center gap-2">
           {['sorting', 'binarysearch', 'tree'].includes(diagramType) && (
@@ -321,21 +331,23 @@ export default function DiagramBlock({ block, onUpdate }) {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-           <button 
-            onClick={addSnapshot}
-            className="flex items-center gap-1 px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-gray-400 hover:text-primary border border-app-border-strong rounded hover:bg-surface-hover transition-colors"
-          >
-            <Plus size={12} /> Add Step
-          </button>
-          <button 
-            onClick={deleteSnapshot}
-            disabled={snapshots.length <= 1}
-            className="flex items-center gap-1 px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-gray-400 hover:text-red-400 border border-app-border-strong rounded hover:bg-red-500/10 transition-colors disabled:opacity-30"
-          >
-            <Trash2 size={12} /> Delete Step
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-2">
+             <button 
+              onClick={addSnapshot}
+              className="flex items-center gap-1 px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-gray-400 hover:text-primary border border-app-border-strong rounded hover:bg-surface-hover transition-colors"
+            >
+              <Plus size={12} /> Add Step
+            </button>
+            <button 
+              onClick={deleteSnapshot}
+              disabled={snapshots.length <= 1}
+              className="flex items-center gap-1 px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-gray-400 hover:text-red-400 border border-app-border-strong rounded hover:bg-red-500/10 transition-colors disabled:opacity-30"
+            >
+              <Trash2 size={12} /> Delete Step
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

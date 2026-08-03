@@ -313,14 +313,25 @@ export async function getRoadmaps() {
   return data;
 }
 
-export async function createRoadmap(title, nodes = [], edges = []) {
+export async function createRoadmap(title, subjectId, notebookId, nodes = [], edges = []) {
   const { data: { user } } = await supabase.auth.getUser();
+  const insertData = { title, nodes, edges, user_id: user.id };
+  if (subjectId) insertData.subject_id = subjectId;
+  if (notebookId) insertData.notebook_id = notebookId;
   const { data, error } = await supabase
     .from('roadmaps')
-    .insert({ title, nodes, edges, user_id: user.id })
+    .insert(insertData)
     .select()
     .single();
-  if (error) throw error;
+  if (error) {
+    if (error.code === 'PGRST204' || error.message?.includes('subject_id')) {
+      delete insertData.subject_id;
+      const fallback = await supabase.from('roadmaps').insert(insertData).select().single();
+      if (fallback.error) throw fallback.error;
+      return fallback.data;
+    }
+    throw error;
+  }
   return data;
 }
 
@@ -352,4 +363,90 @@ export async function deleteRoadmap(id) {
     .delete()
     .eq('id', id);
   if (error) throw error;
+}
+
+// =============================================
+// COLLABORATORS
+// =============================================
+export async function getCollaborators(noteId) {
+  const { data, error } = await supabase
+    .from('note_collaborators')
+    .select('*, profiles(email)')
+    .eq('note_id', noteId)
+    .order('created_at', { ascending: true });
+  if (error) {
+    if (error.code === '42P01') return []; // Table doesn't exist yet
+    throw error;
+  }
+  return data;
+}
+
+export async function addCollaborator(noteId, email, role = 'viewer') {
+  // 1. Find user by email
+  const { data: profiles, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .limit(1);
+  if (profileError) throw profileError;
+  if (!profiles || profiles.length === 0) throw new Error('User not found');
+  
+  const userId = profiles[0].id;
+  
+  // 2. Insert into note_collaborators
+  const { data, error } = await supabase
+    .from('note_collaborators')
+    .insert({ note_id: noteId, user_id: userId, role })
+    .select('*, profiles(email)')
+    .single();
+    
+  if (error) {
+    if (error.code === '23505') throw new Error('User is already a collaborator');
+    throw error;
+  }
+  return data;
+}
+
+export async function removeCollaborator(noteId, userId) {
+  const { error } = await supabase
+    .from('note_collaborators')
+    .delete()
+    .eq('note_id', noteId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function updateCollaboratorRole(noteId, userId, role) {
+  const { data, error } = await supabase
+    .from('note_collaborators')
+    .update({ role })
+    .eq('note_id', noteId)
+    .eq('user_id', userId)
+    .select('*, profiles(email)')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getSharedNotes() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  
+  // Fetch notes where user is a collaborator
+  const { data, error } = await supabase
+    .from('note_collaborators')
+    .select('note_id, role, notes(*, notebooks(title))')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+    
+  if (error) {
+    if (error.code === '42P01') return [];
+    throw error;
+  }
+  
+  // Flatten data
+  return data.map(item => ({
+    ...item.notes,
+    collaborator_role: item.role
+  }));
 }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Plus, Type, Code2, GitMerge, Trash2, GripVertical,
-  ChevronUp, ChevronDown, Loader2, FileText, Share2, Check, Globe, LayoutGrid, Network, Terminal
+  ChevronUp, ChevronDown, Loader2, FileText, Share2, Check, Globe, LayoutGrid, Network, Terminal, UserPlus, X
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import * as api from '../lib/api';
 import TextBlock from './TextBlock';
 import CodeBlock from './CodeBlock';
@@ -19,6 +20,13 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
   const [showBlockMenu, setShowBlockMenu] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Collaborator states
+  const [collaborators, setCollaborators] = useState([]);
+  const [collabEmail, setCollabEmail] = useState('');
+  const [collabRole, setCollabRole] = useState('editor');
+  const [collabError, setCollabError] = useState('');
+  
   const saveTimerRef = useRef(null);
   const blocksRef = useRef(blocks);
   blocksRef.current = blocks;
@@ -38,6 +46,36 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
         setLoading(false);
       });
   }, [noteId, noteTitle]);
+
+  // Real-time Collaboration Subscription
+  useEffect(() => {
+    if (!noteId) return;
+    
+    const channel = supabase.channel(`note-${noteId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'blocks', filter: `note_id=eq.${noteId}` },
+        (payload) => {
+          setBlocks(currentBlocks => {
+            if (payload.eventType === 'INSERT') {
+              if (!currentBlocks.find(b => b.id === payload.new.id)) {
+                return [...currentBlocks, payload.new].sort((a, b) => a.order_index - b.order_index);
+              }
+            } else if (payload.eventType === 'UPDATE') {
+              return currentBlocks.map(b => b.id === payload.new.id ? payload.new : b).sort((a, b) => a.order_index - b.order_index);
+            } else if (payload.eventType === 'DELETE') {
+              return currentBlocks.filter(b => b.id !== payload.old.id);
+            }
+            return currentBlocks;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [noteId]);
 
   // Autosave debounce
   const scheduleSave = useCallback((blockId, updates) => {
@@ -136,6 +174,37 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Fetch collaborators
+  useEffect(() => {
+    if (showShareModal && noteId) {
+      api.getCollaborators(noteId)
+        .then(data => setCollaborators(data))
+        .catch(err => console.error(err));
+    }
+  }, [showShareModal, noteId]);
+
+  const handleAddCollaborator = async (e) => {
+    e.preventDefault();
+    if (!collabEmail) return;
+    try {
+      setCollabError('');
+      const newCollab = await api.addCollaborator(noteId, collabEmail, collabRole);
+      setCollaborators(prev => [...prev, newCollab]);
+      setCollabEmail('');
+    } catch (err) {
+      setCollabError(err.message || 'Failed to add collaborator');
+    }
+  };
+
+  const handleRemoveCollaborator = async (userId) => {
+    try {
+      await api.removeCollaborator(noteId, userId);
+      setCollaborators(prev => prev.filter(c => c.user_id !== userId));
+    } catch (err) {
+      console.error('Failed to remove collaborator:', err);
+    }
+  };
+
   if (!noteId) {
     return null;
   }
@@ -185,7 +254,7 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
             {showShareModal && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowShareModal(false)} />
-                <div className="absolute top-full right-0 mt-2 w-64 bg-surface-hover border border-app-border-strong rounded-xl shadow-2xl p-4 z-50">
+                <div className="absolute top-full right-0 mt-2 w-80 bg-surface-hover border border-app-border-strong rounded-xl shadow-2xl p-4 z-50">
                   <h4 className="text-primary-text font-medium mb-1">Share to Web</h4>
                   <p className="text-xs text-gray-500 mb-4">Anyone with the link can view this note and run its code.</p>
                   
@@ -200,7 +269,7 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
                   </div>
                   
                   {isPublic && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mb-6">
                       <input 
                         readOnly 
                         value={shareUrl} 
@@ -212,6 +281,59 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
                       >
                         {copied ? <Check size={14} className="text-green-400" /> : <Share2 size={14} />}
                       </button>
+                    </div>
+                  )}
+
+                  <hr className="border-app-border mb-4" />
+
+                  <h4 className="text-primary-text font-medium mb-1">Collaborators</h4>
+                  <p className="text-xs text-gray-500 mb-4">Invite others to view or edit this note.</p>
+                  
+                  <form onSubmit={handleAddCollaborator} className="flex flex-col gap-2 mb-4">
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        placeholder="Email address..."
+                        value={collabEmail}
+                        onChange={(e) => setCollabEmail(e.target.value)}
+                        className="flex-1 bg-app-bg border border-app-border-strong rounded px-2 py-1.5 text-xs text-primary-text outline-none focus:border-primary/50"
+                      />
+                      <select 
+                        value={collabRole}
+                        onChange={(e) => setCollabRole(e.target.value)}
+                        className="bg-app-bg border border-app-border-strong rounded px-2 py-1.5 text-xs text-primary-text outline-none"
+                      >
+                        <option value="viewer">Viewer</option>
+                        <option value="editor">Editor</option>
+                      </select>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={!collabEmail}
+                      className="flex items-center justify-center gap-2 w-full bg-primary/20 text-primary border border-primary/30 rounded py-1.5 text-xs font-medium hover:bg-primary/30 disabled:opacity-50 transition-colors"
+                    >
+                      <UserPlus size={14} /> Add Collaborator
+                    </button>
+                    {collabError && <p className="text-red-400 text-xs mt-1">{collabError}</p>}
+                  </form>
+
+                  {collaborators.length > 0 && (
+                    <div className="space-y-2 mt-4 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                      {collaborators.map(c => (
+                        <div key={c.user_id} className="flex items-center justify-between bg-black/20 p-2 rounded border border-app-border">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs text-primary-text truncate">{c.profiles?.email}</span>
+                            <span className="text-[10px] text-gray-500 capitalize">{c.role}</span>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveCollaborator(c.user_id)}
+                            className="p-1 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                            title="Remove collaborator"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Type, Bold, Italic, List, Code, Underline, Link2 } from 'lucide-react';
 
-export default function TextBlock({ block, onUpdate, allNotes = [], onLinkClick }) {
+export default function TextBlock({ block, onUpdate, allNotes = [], onLinkClick, readOnly = false }) {
   const contentRef = useRef(null);
   const format = block.content?.format || 'paragraph';
   const [linkQuery, setLinkQuery] = useState(null); // { query: string, caretRect: {top,left} } or null
@@ -201,25 +201,27 @@ export default function TextBlock({ block, onUpdate, allNotes = [], onLinkClick 
   return (
     <div className="group rounded-xl border border-transparent hover:border-app-border transition-all relative">
       {/* Format toolbar */}
-      <div className="absolute -top-8 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 bg-surface-hover border border-app-border-strong rounded-lg px-1 py-0.5 z-10 shadow-lg">
-        <button onClick={() => handleFormatChange('paragraph')} className={`p-1 rounded text-xs transition-colors ${format === 'paragraph' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Paragraph"><Type size={12} /></button>
-        <button onClick={() => handleFormatChange('heading1')} className={`p-1 rounded text-xs font-bold transition-colors ${format === 'heading1' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Heading 1">H1</button>
-        <button onClick={() => handleFormatChange('heading2')} className={`p-1 rounded text-xs font-bold transition-colors ${format === 'heading2' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Heading 2">H2</button>
-        <button onClick={() => handleFormatChange('heading3')} className={`p-1 rounded text-xs font-bold transition-colors ${format === 'heading3' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Heading 3">H3</button>
-        <button onClick={() => handleFormatChange('bullet')} className={`p-1 rounded text-xs transition-colors ${format === 'bullet' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Bullet List"><List size={12} /></button>
-        
-        <div className="w-px h-4 bg-white/10 mx-0.5" />
-        
-        <button onMouseDown={(e) => { e.preventDefault(); execCommand('bold'); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Bold"><Bold size={12} /></button>
-        <button onMouseDown={(e) => { e.preventDefault(); execCommand('italic'); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Italic"><Italic size={12} /></button>
-        <button onMouseDown={(e) => { e.preventDefault(); execCommand('underline'); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Underline"><Underline size={12} /></button>
-        <button onMouseDown={(e) => { e.preventDefault(); insertCode(); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Inline Code"><Code size={12} /></button>
-      </div>
+      {!readOnly && (
+        <div className="absolute -top-8 left-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 bg-surface-hover border border-app-border-strong rounded-lg px-1 py-0.5 z-10 shadow-lg">
+          <button onClick={() => handleFormatChange('paragraph')} className={`p-1 rounded text-xs transition-colors ${format === 'paragraph' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Paragraph"><Type size={12} /></button>
+          <button onClick={() => handleFormatChange('heading1')} className={`p-1 rounded text-xs font-bold transition-colors ${format === 'heading1' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Heading 1">H1</button>
+          <button onClick={() => handleFormatChange('heading2')} className={`p-1 rounded text-xs font-bold transition-colors ${format === 'heading2' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Heading 2">H2</button>
+          <button onClick={() => handleFormatChange('heading3')} className={`p-1 rounded text-xs font-bold transition-colors ${format === 'heading3' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Heading 3">H3</button>
+          <button onClick={() => handleFormatChange('bullet')} className={`p-1 rounded text-xs transition-colors ${format === 'bullet' ? 'text-primary bg-white/5' : 'text-gray-500 hover:text-gray-300'}`} title="Bullet List"><List size={12} /></button>
+          
+          <div className="w-px h-4 bg-white/10 mx-0.5" />
+          
+          <button onMouseDown={(e) => { e.preventDefault(); execCommand('bold'); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Bold"><Bold size={12} /></button>
+          <button onMouseDown={(e) => { e.preventDefault(); execCommand('italic'); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Italic"><Italic size={12} /></button>
+          <button onMouseDown={(e) => { e.preventDefault(); execCommand('underline'); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Underline"><Underline size={12} /></button>
+          <button onMouseDown={(e) => { e.preventDefault(); insertCode(); }} className="p-1 rounded text-xs text-gray-500 hover:text-gray-300 hover:bg-surface-hover transition-colors" title="Inline Code"><Code size={12} /></button>
+        </div>
+      )}
 
       <div className="relative">
         <div
           ref={contentRef}
-          contentEditable
+          contentEditable={!readOnly}
           suppressContentEditableWarning
           onInput={handleInput}
           onKeyDown={handleKeyDown}

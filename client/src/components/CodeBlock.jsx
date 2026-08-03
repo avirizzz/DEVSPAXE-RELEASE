@@ -19,7 +19,7 @@ const BOILERPLATES = {
   css: `body {\n    background-color: #f0f0f0;\n    font-family: sans-serif;\n}\n`,
 };
 
-export default function CodeBlock({ block, allBlocks = [], onUpdate }) {
+export default function CodeBlock({ block, allBlocks = [], onUpdate, readOnly = false }) {
   const code = block.content?.text || '';
   const blockTitle = block.content?.title || '';
   const language = block.language || 'javascript';
@@ -151,13 +151,13 @@ export default function CodeBlock({ block, allBlocks = [], onUpdate }) {
           {/* Language Selector */}
           <div className="relative">
             <button
-              onClick={() => setShowLangDropdown(!showLangDropdown)}
-              className="flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md hover:bg-surface-hover transition-colors"
+              onClick={() => !readOnly && setShowLangDropdown(!showLangDropdown)}
+              className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-colors ${readOnly ? 'cursor-default' : 'hover:bg-surface-hover'}`}
               style={{ color: langObj.color }}
             >
               <div className="w-2 h-2 rounded-full" style={{ background: langObj.color }} />
               {langObj.label}
-              <ChevronDown size={10} />
+              {!readOnly && <ChevronDown size={10} />}
             </button>
             {showLangDropdown && (
               <>
@@ -179,22 +179,26 @@ export default function CodeBlock({ block, allBlocks = [], onUpdate }) {
             )}
           </div>
 
-          <input
-            type="text"
-            placeholder="Name this block..."
-            value={blockTitle}
-            onChange={(e) => onUpdate({ content: { ...block.content, title: e.target.value } })}
-            className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 ml-2 w-32 focus:text-gray-200 transition-colors"
-          />
+          {readOnly ? (
+            blockTitle ? <span className="text-xs text-gray-400 ml-2">{blockTitle}</span> : null
+          ) : (
+            <input
+              type="text"
+              placeholder="Name this block..."
+              value={blockTitle}
+              onChange={(e) => onUpdate({ content: { ...block.content, title: e.target.value } })}
+              className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 ml-2 w-32 focus:text-gray-200 transition-colors"
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-1">
           {isWebLang && compatibleBlocks.length > 0 && (
             <div className="relative">
               <button
-                onClick={() => setShowLinkDropdown(!showLinkDropdown)}
+                onClick={() => !readOnly && setShowLinkDropdown(!showLinkDropdown)}
                 title="Link to block"
-                className={`flex items-center gap-1 px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded transition-colors ${linkedBlock ? 'text-primary bg-primary/10' : 'text-gray-500 hover:text-white hover:bg-surface-hover'}`}
+                className={`flex items-center gap-1 px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded transition-colors ${linkedBlock ? 'text-primary bg-primary/10' : 'text-gray-500 hover:text-white hover:bg-surface-hover'} ${readOnly ? 'cursor-default' : ''}`}
               >
                 <Link size={12} />
                 {linkedBlock ? 'Linked' : 'Link'}
@@ -226,13 +230,15 @@ export default function CodeBlock({ block, allBlocks = [], onUpdate }) {
               )}
             </div>
           )}
-          <button
-            onClick={handleInsertBoilerplate}
-            title="Insert Boilerplate"
-            className="px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-gray-500 hover:text-white hover:bg-surface-hover rounded transition-colors"
-          >
-            Boilerplate
-          </button>
+          {!readOnly && (
+            <button
+              onClick={handleInsertBoilerplate}
+              title="Insert Boilerplate"
+              className="px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-gray-500 hover:text-white hover:bg-surface-hover rounded transition-colors"
+            >
+              Boilerplate
+            </button>
+          )}
           <button onClick={handleCopy} className="p-1.5 text-gray-500 hover:text-gray-300 rounded-md hover:bg-surface-hover transition-colors" title="Copy code">
             {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
           </button>
@@ -266,7 +272,8 @@ export default function CodeBlock({ block, allBlocks = [], onUpdate }) {
             lineNumbersMinChars: 3,
             folding: false,
             contextmenu: false,
-            wordWrap: 'on'
+            wordWrap: 'on',
+            readOnly: readOnly
           }}
         />
       </div>

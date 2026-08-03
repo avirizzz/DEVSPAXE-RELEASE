@@ -21,7 +21,7 @@ const SYMBOLS = [
   { label: '→', title: 'Right Arrow' },
 ];
 
-export default function PseudocodeBlock({ block, onUpdate }) {
+export default function PseudocodeBlock({ block, onUpdate, readOnly = false }) {
   const code = block.content?.text || '';
   const editorRef = useRef(null);
 
@@ -67,15 +67,19 @@ export default function PseudocodeBlock({ block, onUpdate }) {
     <div className="flex flex-col group rounded-xl overflow-hidden border border-white/10 shadow-lg bg-black/40">
       <div className="flex items-center gap-1 p-2 bg-[#1a1a1a] border-b border-white/5 overflow-x-auto custom-scrollbar">
         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mr-2 shrink-0">Pseudocode</span>
-        <input
-          type="text"
-          placeholder="Name this block..."
-          value={block.content?.title || ''}
-          onChange={(e) => onUpdate({ content: { ...block.content, title: e.target.value } })}
-          className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 mr-2 w-32 focus:text-gray-200 transition-colors shrink-0"
-        />
+        {readOnly ? (
+          block.content?.title ? <span className="text-xs text-gray-400 mr-2 shrink-0">{block.content.title}</span> : null
+        ) : (
+          <input
+            type="text"
+            placeholder="Name this block..."
+            value={block.content?.title || ''}
+            onChange={(e) => onUpdate({ content: { ...block.content, title: e.target.value } })}
+            className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 mr-2 w-32 focus:text-gray-200 transition-colors shrink-0"
+          />
+        )}
         <div className="w-px h-4 bg-white/10 mr-1 shrink-0" />
-        {SYMBOLS.map((sym, i) => (
+        {!readOnly && SYMBOLS.map((sym, i) => (
           <button
             key={i}
             onClick={() => insertSymbol(sym.label)}
@@ -110,6 +114,7 @@ export default function PseudocodeBlock({ block, onUpdate }) {
             wordWrap: 'on',
             contextmenu: false,
             renderLineHighlight: 'all',
+            readOnly: readOnly,
             scrollbar: {
               vertical: 'visible',
               horizontal: 'visible',

@@ -208,6 +208,7 @@ export default function Dashboard({ session }) {
           setRoadmaps={setRoadmaps}
           activeRoadmapId={activeRoadmapId}
           setActiveRoadmapId={setActiveRoadmapId}
+          activeSubjectId={activeSubjectId}
           notes={allNotes}
           onSelectNote={handleSelectNote}
           noteStatuses={noteStatuses}
@@ -285,6 +286,10 @@ export default function Dashboard({ session }) {
           onGoHome={handleGoHome}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          roadmaps={roadmaps}
+          setRoadmaps={setRoadmaps}
+          activeRoadmapId={activeRoadmapId}
+          setActiveRoadmapId={setActiveRoadmapId}
         />
         {renderMainView()}
       </div>

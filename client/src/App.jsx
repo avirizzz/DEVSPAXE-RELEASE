@@ -83,8 +83,11 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-app-bg text-primary-text">
-        <div className="animate-pulse">Loading note.dev...</div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-app-bg text-primary-text gap-4">
+        <div className="w-80 h-16 overflow-hidden flex items-center justify-center animate-pulse">
+          <img src="/logo.png" alt="Logo" className="w-[360px] max-w-none mix-blend-screen" />
+        </div>
+        <div className="animate-pulse font-code font-bold text-xl">Loading...</div>
       </div>
     );
   }

@@ -47,10 +47,11 @@ export default function Auth() {
       {/* Header */}
       <header className="p-6 flex justify-between items-center z-10 relative">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="bg-[#E1E0CC] text-black rounded p-1">
-            <Code2 size={20} />
+          <div className="flex items-center justify-center mb-8 select-none">
+            <div className="w-80 h-16 overflow-hidden flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-[360px] max-w-none mix-blend-screen" />
+            </div>
           </div>
-          <span className="text-xl font-bold tracking-tight">note.dev</span>
         </Link>
         <button onClick={toggleTheme} className="p-2 rounded-full border border-app-border-strong hover:bg-surface-hover transition-colors">
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}

@@ -19,6 +19,7 @@ export default {
       fontFamily: {
         sans: ['Almarai', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
         serif: ['"Instrument Serif"', 'serif'],
+        code: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
       },
     },
   },

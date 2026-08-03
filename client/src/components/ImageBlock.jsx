@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Upload, Image as ImageIcon, Loader2, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 
-export default function ImageBlock({ block, onUpdate }) {
+export default function ImageBlock({ block, onUpdate, readOnly = false }) {
   const content = block.content || {};
   const url = content.url || '';
   const align = content.align || 'center';
@@ -80,13 +80,17 @@ export default function ImageBlock({ block, onUpdate }) {
       <div className="flex items-center justify-between px-3 py-2 bg-surface-bg border-b border-app-border shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Image</span>
-          <input
-            type="text"
-            placeholder="Name this block..."
-            value={blockTitle}
-            onChange={(e) => onUpdate({ content: { ...content, title: e.target.value } })}
-            className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 ml-2 w-32 focus:text-gray-200 transition-colors"
-          />
+          {readOnly ? (
+            blockTitle ? <span className="text-xs text-gray-400 ml-2">{blockTitle}</span> : null
+          ) : (
+            <input
+              type="text"
+              placeholder="Name this block..."
+              value={blockTitle}
+              onChange={(e) => onUpdate({ content: { ...content, title: e.target.value } })}
+              className="bg-transparent border-none outline-none text-xs text-gray-400 placeholder-gray-600 ml-2 w-32 focus:text-gray-200 transition-colors"
+            />
+          )}
         </div>
       </div>
 
@@ -103,10 +107,13 @@ export default function ImageBlock({ block, onUpdate }) {
             <span className="text-xs">Uploading image...</span>
           </div>
         ) : !url ? (
-          <div 
-            className="w-full h-full min-h-[150px] border-2 border-dashed border-white/10 hover:border-primary/50 rounded-lg flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/5 transition-colors group/upload"
-            onClick={() => fileInputRef.current?.click()}
-          >
+          readOnly ? (
+            <div className="text-gray-500 text-sm">No image provided</div>
+          ) : (
+            <div 
+              className="w-full h-full min-h-[150px] border-2 border-dashed border-white/10 hover:border-primary/50 rounded-lg flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/5 transition-colors group/upload"
+              onClick={() => fileInputRef.current?.click()}
+            >
             <div className="p-3 bg-white/5 rounded-full group-hover/upload:bg-primary/20 transition-colors group-hover/upload:text-primary text-gray-500">
               <Upload size={24} />
             </div>
@@ -122,49 +129,52 @@ export default function ImageBlock({ block, onUpdate }) {
               onChange={onFileInputChange} 
             />
           </div>
+          )
         ) : (
           <div className={`w-full flex flex-col group/image relative ${align === 'left' ? 'items-start' : align === 'right' ? 'items-end' : 'items-center'}`}>
             {/* Formatting Toolbar (visible on hover) */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/image:opacity-100 transition-opacity bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl p-1.5 flex items-center gap-2 z-10 backdrop-blur-md">
-              <div className="flex items-center gap-0.5 bg-black/40 rounded px-1 py-0.5">
-                <button 
-                  onClick={() => onUpdate({ content: { ...content, align: 'left' } })}
-                  className={`p-1.5 rounded transition-colors ${align === 'left' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-gray-200 hover:bg-white/10'}`}
-                  title="Align Left"
-                >
-                  <AlignLeft size={14} />
-                </button>
-                <button 
-                  onClick={() => onUpdate({ content: { ...content, align: 'center' } })}
-                  className={`p-1.5 rounded transition-colors ${align === 'center' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-gray-200 hover:bg-white/10'}`}
-                  title="Align Center"
-                >
-                  <AlignCenter size={14} />
-                </button>
-                <button 
-                  onClick={() => onUpdate({ content: { ...content, align: 'right' } })}
-                  className={`p-1.5 rounded transition-colors ${align === 'right' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-gray-200 hover:bg-white/10'}`}
-                  title="Align Right"
-                >
-                  <AlignRight size={14} />
-                </button>
+            {!readOnly && (
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/image:opacity-100 transition-opacity bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl p-1.5 flex items-center gap-2 z-10 backdrop-blur-md">
+                <div className="flex items-center gap-0.5 bg-black/40 rounded px-1 py-0.5">
+                  <button 
+                    onClick={() => onUpdate({ content: { ...content, align: 'left' } })}
+                    className={`p-1.5 rounded transition-colors ${align === 'left' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-gray-200 hover:bg-white/10'}`}
+                    title="Align Left"
+                  >
+                    <AlignLeft size={14} />
+                  </button>
+                  <button 
+                    onClick={() => onUpdate({ content: { ...content, align: 'center' } })}
+                    className={`p-1.5 rounded transition-colors ${align === 'center' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-gray-200 hover:bg-white/10'}`}
+                    title="Align Center"
+                  >
+                    <AlignCenter size={14} />
+                  </button>
+                  <button 
+                    onClick={() => onUpdate({ content: { ...content, align: 'right' } })}
+                    className={`p-1.5 rounded transition-colors ${align === 'right' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-gray-200 hover:bg-white/10'}`}
+                    title="Align Right"
+                  >
+                    <AlignRight size={14} />
+                  </button>
+                </div>
+                
+                <div className="w-px h-4 bg-white/10" />
+                
+                <div className="flex items-center gap-2 px-2">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase">Scale</span>
+                  <input 
+                    type="range" 
+                    min="10" 
+                    max="100" 
+                    value={scale} 
+                    onChange={(e) => onUpdate({ content: { ...content, scale: parseInt(e.target.value) } })}
+                    className="w-20 accent-primary"
+                  />
+                  <span className="text-[10px] text-gray-400 w-6 text-right">{scale}%</span>
+                </div>
               </div>
-              
-              <div className="w-px h-4 bg-white/10" />
-              
-              <div className="flex items-center gap-2 px-2">
-                <span className="text-[10px] font-bold text-gray-500 uppercase">Scale</span>
-                <input 
-                  type="range" 
-                  min="10" 
-                  max="100" 
-                  value={scale} 
-                  onChange={(e) => onUpdate({ content: { ...content, scale: parseInt(e.target.value) } })}
-                  className="w-20 accent-primary"
-                />
-                <span className="text-[10px] text-gray-400 w-6 text-right">{scale}%</span>
-              </div>
-            </div>
+            )}
 
             {/* Image */}
             <img 
@@ -175,16 +185,22 @@ export default function ImageBlock({ block, onUpdate }) {
             />
             
             {/* Caption Input */}
-            <div className={`mt-3 w-full flex ${align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center'}`}>
-              <input
-                type="text"
-                placeholder="Add a caption..."
-                value={caption}
-                onChange={(e) => onUpdate({ content: { ...content, caption: e.target.value } })}
-                className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-primary outline-none text-xs text-gray-400 focus:text-gray-200 placeholder-gray-600 text-center transition-colors min-w-[200px]"
-                style={{ width: `${scale}%` }}
-              />
-            </div>
+            {(caption || !readOnly) && (
+              <div className={`mt-3 w-full flex ${align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                {readOnly ? (
+                  <span className="text-xs text-gray-400 text-center">{caption}</span>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Add a caption..."
+                    value={caption}
+                    onChange={(e) => onUpdate({ content: { ...content, caption: e.target.value } })}
+                    className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-primary outline-none text-xs text-gray-400 focus:text-gray-200 placeholder-gray-600 text-center transition-colors min-w-[200px]"
+                    style={{ width: `${scale}%` }}
+                  />
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

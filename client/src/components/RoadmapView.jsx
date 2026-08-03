@@ -68,8 +68,9 @@ const RoadmapNode = ({ id, data, isConnectable }) => {
 
 const nodeTypes = { roadmapNode: RoadmapNode };
 
-export default function RoadmapView({ roadmaps = [], setRoadmaps, activeRoadmapId, setActiveRoadmapId, notes = [], onSelectNote, onClose }) {
+export default function RoadmapView({ roadmaps = [], setRoadmaps, activeRoadmapId, setActiveRoadmapId, activeSubjectId, notes = [], onSelectNote, onClose }) {
   const { promptAsync, confirmAsync } = useDialog();
+  const filteredRoadmaps = activeSubjectId ? roadmaps.filter(r => r.subject_id === activeSubjectId) : roadmaps;
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [edgeStyle, setEdgeStyle] = useState('dashed');
@@ -77,18 +78,31 @@ export default function RoadmapView({ roadmaps = [], setRoadmaps, activeRoadmapI
   const [linkModalOpen, setLinkModalOpen] = useState(null); // Node ID
   const skipSaveRef = useRef(true); // Skip initial save on mount
 
+  const loadedRoadmapId = useRef(null);
+
   // Sync state when active roadmap changes
   useEffect(() => {
+    if (activeRoadmapId && loadedRoadmapId.current === activeRoadmapId) return;
+
+    // Auto-select first roadmap if current isn't in filtered list
+    if (filteredRoadmaps.length > 0 && !filteredRoadmaps.find(r => r.id === activeRoadmapId)) {
+      setActiveRoadmapId(filteredRoadmaps[0].id);
+      return;
+    }
+    
     const activeRoadmap = roadmaps.find(r => r.id === activeRoadmapId);
     if (activeRoadmap) {
-      skipSaveRef.current = true; // Prevent saving just because we loaded it
+      loadedRoadmapId.current = activeRoadmapId;
+      skipSaveRef.current = true;
       setNodes(activeRoadmap.nodes && activeRoadmap.nodes.length > 0 ? activeRoadmap.nodes : initialNodes);
       setEdges(activeRoadmap.edges || []);
-      
-      // Allow saving after a brief moment so initial load doesn't trigger a save
       setTimeout(() => { skipSaveRef.current = false; }, 500);
+    } else if (!activeRoadmapId) {
+      loadedRoadmapId.current = null;
+      setNodes(initialNodes);
+      setEdges(initialEdges);
     }
-  }, [activeRoadmapId, roadmaps]);
+  }, [activeRoadmapId, roadmaps, filteredRoadmaps, setActiveRoadmapId]);
 
   // Auto-save to Supabase
   useEffect(() => {
@@ -134,32 +148,7 @@ export default function RoadmapView({ roadmaps = [], setRoadmaps, activeRoadmapI
     setEdges(eds => eds.filter(edge => edge.source !== id && edge.target !== id));
   };
 
-  const handleCreateRoadmap = async () => {
-    const title = await promptAsync('New Roadmap', 'Enter roadmap title:', 'My Roadmap');
-    if (title && title.trim()) {
-      try {
-        const nr = await api.createRoadmap(title.trim(), initialNodes, initialEdges);
-        setRoadmaps(prev => [...prev, nr]);
-        setActiveRoadmapId(nr.id);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
 
-  const handleDeleteRoadmap = async () => {
-    if (!activeRoadmapId) return;
-    const ok = await confirmAsync('Delete Roadmap', 'Are you sure? This cannot be undone.');
-    if (ok) {
-      try {
-        await api.deleteRoadmap(activeRoadmapId);
-        setRoadmaps(prev => prev.filter(r => r.id !== activeRoadmapId));
-        setActiveRoadmapId(roadmaps.length > 1 ? roadmaps.find(r => r.id !== activeRoadmapId).id : null);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
 
   const nodesWithCallbacks = nodes.map(n => ({
     ...n,
@@ -243,24 +232,6 @@ export default function RoadmapView({ roadmaps = [], setRoadmaps, activeRoadmapI
               <ChevronLeft size={16} /> Back
             </button>
           )}
-          
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/[0.04] rounded-xl px-3 py-1.5 shadow-2xl">
-            <select
-              className="bg-transparent text-white text-sm font-medium focus:outline-none max-w-[150px] truncate"
-              value={activeRoadmapId || ''}
-              onChange={(e) => setActiveRoadmapId(e.target.value)}
-            >
-              {roadmaps.length === 0 && <option value="" disabled>No Roadmaps</option>}
-              {roadmaps.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
-            </select>
-            <div className="w-px h-4 bg-white/10 mx-1" />
-            <button onClick={handleCreateRoadmap} className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors" title="New Roadmap">
-              <Plus size={14} />
-            </button>
-            <button onClick={handleDeleteRoadmap} className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors" title="Delete Roadmap" disabled={!activeRoadmapId}>
-              <Trash2 size={14} />
-            </button>
-          </div>
         </Panel>
 
         <Panel position="top-right" className="flex flex-col gap-3 items-end">

@@ -5,6 +5,8 @@ import * as api from '../lib/api';
 import TextBlock from '../components/TextBlock';
 import CodeBlock from '../components/CodeBlock';
 import DiagramBlock from '../components/DiagramBlock';
+import PseudocodeBlock from '../components/PseudocodeBlock';
+import ImageBlock from '../components/ImageBlock';
 
 export default function PublicNote() {
   const { noteId } = useParams();
@@ -63,8 +65,8 @@ export default function PublicNote() {
       {/* Header */}
       <header className="h-14 px-6 border-b border-app-border flex items-center justify-between shrink-0 bg-black/80 backdrop-blur-md relative z-10">
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2 mr-4">
-            <span className="text-primary font-serif italic font-bold text-lg leading-none">note.dev</span>
+          <Link to="/" className="w-48 h-10 overflow-hidden flex items-center justify-center">
+            <img src="/logo.png" alt="Logo" className="w-[220px] max-w-none mix-blend-screen" />
           </Link>
           <div className="h-4 w-px bg-white/10" />
           <h1 className="text-sm font-medium text-primary-text ml-2">{note.title}</h1>
@@ -84,7 +86,7 @@ export default function PublicNote() {
               if (block.type === 'code') {
                 return (
                   <div key={block.id}>
-                    <CodeBlock block={block} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
+                    <CodeBlock block={block} readOnly={true} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
                   </div>
                 );
               }
@@ -92,14 +94,30 @@ export default function PublicNote() {
               if (block.type === 'diagram') {
                 return (
                   <div key={block.id}>
-                    <DiagramBlock block={block} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
+                    <DiagramBlock block={block} readOnly={true} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
+                  </div>
+                );
+              }
+              
+              if (block.type === 'pseudocode') {
+                return (
+                  <div key={block.id}>
+                    <PseudocodeBlock block={block} readOnly={true} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
+                  </div>
+                );
+              }
+              
+              if (block.type === 'image') {
+                return (
+                  <div key={block.id}>
+                    <ImageBlock block={block} readOnly={true} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
                   </div>
                 );
               }
 
               return (
                 <div key={block.id}>
-                  <TextBlock block={block} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
+                  <TextBlock block={block} readOnly={true} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
                 </div>
               );
             })

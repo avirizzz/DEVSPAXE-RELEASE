@@ -83,7 +83,7 @@ export default function Landing() {
     offset: ['start 0.8', 'end 0.2']
   });
 
-  const aboutText = "Built from the ground up for software engineers and learners. note.dev replaces messy text files and disjointed browser tabs with a single, unified environment designed specifically for technical mastery, code execution, and algorithmic thinking.";
+  const aboutText = "Built from the ground up for software engineers and learners. DEVSPAXE replaces messy text files and disjointed browser tabs with a single, unified environment designed specifically for technical mastery, code execution, and algorithmic thinking.";
   const aboutChars = aboutText.split('');
 
   const featuresHeader = [
@@ -92,7 +92,7 @@ export default function Landing() {
   ];
 
   const aboutHeader = [
-    { text: "We are note.dev,", className: "font-normal" },
+    { text: "We are DEVSPAXE,", className: "font-normal" },
     { text: "a programmer's notebook.", className: "italic font-serif" },
     { text: "We have tools for concepts, code execution, and data structures.", className: "font-normal" }
   ];
@@ -127,9 +127,9 @@ export default function Landing() {
             <div className="grid grid-cols-12 gap-6 items-end">
               <div className="col-span-12 md:col-span-8">
                 <WordsPullUp 
-                  text="note.dev" 
+                  text="DEVSPAXE" 
                   showAsterisk={false}
-                  className="text-[20vw] sm:text-[18vw] md:text-[16vw] lg:text-[14vw] font-medium leading-[0.85] tracking-[-0.07em] text-primary-text" 
+                  className="text-[20vw] sm:text-[18vw] md:text-[16vw] lg:text-[14vw] font-code font-bold leading-[0.85] tracking-[-0.07em] text-primary-text" 
                 />
               </div>
               <div className="col-span-12 md:col-span-4 flex flex-col items-start md:items-end md:text-right gap-6 pb-2 md:pb-6">
@@ -139,7 +139,7 @@ export default function Landing() {
                   transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                   className="text-primary/70 text-xs sm:text-sm md:text-base leading-[1.2] max-w-sm"
                 >
-                  note.dev is a learning-focused programming notebook platform bound not by complex document editors, but by a passion to unlock logic and mastery through clean design and execution.
+                  DEVSPAXE is a learning-focused programming notebook platform bound not by complex document editors, but by a passion to unlock logic and mastery through clean design and execution.
                 </motion.p>
                 <Link to="/auth">
                   <motion.div 
