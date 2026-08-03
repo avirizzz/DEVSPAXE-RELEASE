@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  :root { --c: red; }
+  body { background-color: var(--c); }
+</style>
+</head>
+<body id="b">
+<script>
+  document.documentElement.style.setProperty('--c', 'blue');
+</script>
+</body>
+</html>
