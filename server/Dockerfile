@@ -1,21 +1,29 @@
-FROM node:20-alpine
+# Use Debian-based Node image as the base
+FROM node:20-bookworm-slim
 
-# Install Python 3 and GCC (C++ compiler)
-RUN apk update && \
-    apk add --no-cache python3 g++ build-base
+# Install compilation dependencies: g++ (C++), python3 (Python), and default-jdk (Java)
+RUN apt-get update && apt-get install -y \
+    g++ \
+    python3 \
+    default-jdk \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and install dependencies
+# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install --production
 
-# Copy all source files
+# Copy the rest of the backend code
 COPY . .
 
-# Expose the port the app runs on
+# Set environment variables
+ENV PORT=5001
+ENV NODE_ENV=production
+
+# Expose the API port
 EXPOSE 5001
 
-# Command to run the backend
+# Start the server
 CMD ["node", "index.js"]

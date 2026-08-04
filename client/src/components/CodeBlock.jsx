@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Play, Loader2, Copy, Check, ChevronDown, Link } from 'lucide-react';
+import { Play, Loader2, Copy, Check, ChevronDown, Link, ExternalLink } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { executeCode } from '../lib/codeRunner';
 
@@ -7,6 +7,7 @@ const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript', color: '#f7df1e' },
   { value: 'python', label: 'Python', color: '#3776ab' },
   { value: 'cpp', label: 'C++', color: '#00599c' },
+  { value: 'java', label: 'Java', color: '#b07219' },
   { value: 'html', label: 'HTML', color: '#e34f26' },
   { value: 'css', label: 'CSS', color: '#1572b6' },
 ];
@@ -15,6 +16,7 @@ const BOILERPLATES = {
   javascript: `console.log("Hello, World!");\n`,
   python: `print("Hello, World!")\n`,
   cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}\n`,
+  java: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}\n`,
   html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <title>Document</title>\n</head>\n<body>\n    <h1>Hello, World!</h1>\n</body>\n</html>`,
   css: `body {\n    background-color: #f0f0f0;\n    font-family: sans-serif;\n}\n`,
 };
@@ -295,7 +297,20 @@ export default function CodeBlock({ block, allBlocks = [], onUpdate, readOnly = 
         <div className="border-t border-app-border rounded-b-xl overflow-hidden">
           <div className="flex items-center justify-between px-3 py-1.5 bg-sidebar-bg">
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Preview</span>
-            <button onClick={() => setShowPreview(false)} className="text-gray-500 hover:text-gray-300 text-xs transition-colors">Hide</button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const blob = new Blob([code], { type: 'text/html' });
+                  const url = URL.createObjectURL(blob);
+                  window.open(url, '_blank');
+                }}
+                className="flex items-center gap-1 text-gray-500 hover:text-[#d4c94a] text-[10px] transition-colors"
+                title="Open in new window"
+              >
+                <ExternalLink size={11} /> Pop Out
+              </button>
+              <button onClick={() => setShowPreview(false)} className="text-gray-500 hover:text-gray-300 text-xs transition-colors">Hide</button>
+            </div>
           </div>
           <div className="bg-white rounded-b-lg mx-2 mb-2 overflow-hidden">
             <iframe

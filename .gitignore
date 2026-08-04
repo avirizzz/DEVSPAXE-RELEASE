@@ -1,0 +1,36 @@
+# Environment files — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Deployment Guide — Local only
+deployment_guide.md
+
+# Node
+node_modules/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+dist-ssr/
+
+# Temporary / Scratch development scripts
+Building note.dev MVP.md
+fix_themes.py
+orignalprompt
+test_color.js
+test_html.html
+update_sidebar.js
+temp.css
+*.sql
+!supabase/**/*.sql
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store

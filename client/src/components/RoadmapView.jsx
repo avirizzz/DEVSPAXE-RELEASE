@@ -24,11 +24,11 @@ const RoadmapNode = ({ id, data, isConnectable }) => {
       
       <div 
         className={`transition-all ${isSub 
-          ? 'border border-white/10 bg-[#111] rounded-full px-4 py-2 text-center shadow-lg'
-          : 'border border-primary/20 bg-[#111] rounded-lg px-5 py-4 text-center shadow-lg shadow-primary/5'
+          ? 'border border-app-border bg-surface-bg rounded-full px-4 py-2 text-center shadow-md'
+          : 'border border-primary/20 bg-surface-bg rounded-lg px-5 py-4 text-center shadow-md shadow-primary/5'
         } ${data.isDone ? 'opacity-60' : ''}`}
       >
-        <span className={`${isSub ? 'text-[11px] font-medium text-gray-300' : 'text-[13px] font-bold text-primary tracking-wide'}`}>
+        <span className={`${isSub ? 'text-[11px] font-medium text-primary-text/80' : 'text-[13px] font-bold text-primary tracking-wide'}`}>
           {data.label}
         </span>
       </div>
@@ -37,7 +37,7 @@ const RoadmapNode = ({ id, data, isConnectable }) => {
       {data.linked_note_id && (
         <button
           onClick={(e) => { e.stopPropagation(); data.onOpenNote(data.linked_note_id); }}
-          className="absolute -left-2 -top-2 p-1 bg-[#111] rounded-full border border-primary/30 hover:scale-110 transition-transform shadow-sm z-10"
+          className="absolute -left-2 -top-2 p-1 bg-surface-bg rounded-full border border-primary/30 hover:scale-110 transition-transform shadow-sm z-10"
           title="Open Linked Note"
         >
           <Link2 size={12} className="text-primary" />
@@ -47,17 +47,17 @@ const RoadmapNode = ({ id, data, isConnectable }) => {
       {/* Status Toggle */}
       <button 
         onClick={(e) => { e.stopPropagation(); data.onToggleStatus(id); }}
-        className={`absolute bg-[#111] rounded-full border border-white/10 hover:scale-110 transition-transform shadow-sm z-10 ${isSub ? '-right-2 -top-2 p-0.5' : '-right-3 -top-3 p-1'}`}
+        className={`absolute bg-surface-bg rounded-full border border-app-border hover:scale-110 transition-transform shadow-sm z-10 ${isSub ? '-right-2 -top-2 p-0.5' : '-right-3 -top-3 p-1'}`}
         title="Toggle Status"
       >
         {data.isDone ? <CheckCircle2 size={isSub ? 14 : 16} className="text-primary" /> : <Circle size={isSub ? 14 : 16} className="text-gray-500" />}
       </button>
 
       {/* Edit Overlay */}
-      <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white border border-white/10 rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pointer-events-auto shadow-2xl z-20">
-        <button className="p-1.5 hover:bg-white/10 text-gray-300 rounded transition-colors" onClick={(e) => { e.stopPropagation(); data.onLinkNote(id); }} title="Link Note"><Link2 size={12} /></button>
-        <button className="p-1.5 hover:bg-white/10 rounded transition-colors" onClick={(e) => { e.stopPropagation(); data.onEdit(id); }} title="Rename"><Edit2 size={12} /></button>
-        <button className="p-1.5 hover:bg-red-500/20 text-red-400 rounded transition-colors" onClick={(e) => { e.stopPropagation(); data.onDelete(id); }} title="Delete"><Trash2 size={12} /></button>
+      <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-surface-hover text-primary-text border border-app-border rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pointer-events-auto shadow-xl z-20">
+        <button className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-text/80 rounded transition-colors" onClick={(e) => { e.stopPropagation(); data.onLinkNote(id); }} title="Link Note"><Link2 size={12} /></button>
+        <button className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors" onClick={(e) => { e.stopPropagation(); data.onEdit(id); }} title="Rename"><Edit2 size={12} /></button>
+        <button className="p-1.5 hover:bg-red-500/20 text-red-500 rounded transition-colors" onClick={(e) => { e.stopPropagation(); data.onDelete(id); }} title="Delete"><Trash2 size={12} /></button>
       </div>
 
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="w-2 h-2 bg-primary border-none" />

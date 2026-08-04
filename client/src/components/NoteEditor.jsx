@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Plus, Type, Code2, GitMerge, Trash2, GripVertical,
-  ChevronUp, ChevronDown, Loader2, FileText, Share2, Check, Globe, LayoutGrid, Network, Terminal, UserPlus, X
+  ChevronUp, ChevronDown, Loader2, FileText, Share2, Check, Globe, LayoutGrid, Network, Terminal, UserPlus, X, Box
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import * as api from '../lib/api';
@@ -10,6 +10,7 @@ import CodeBlock from './CodeBlock';
 import DiagramBlock from './DiagramBlock';
 import PseudocodeBlock from './PseudocodeBlock';
 import ImageBlock from './ImageBlock';
+import WebProjectBlock from './WebProjectBlock';
 import { Image as ImageIcon } from 'lucide-react';
 
 export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic, onTitleChange, onPrivacyChange, allNotes = [], onNavigateToNote, viewMode, onViewModeChange }) {
@@ -105,6 +106,7 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
     if (type === 'code') content = { text: '' };
     if (type === 'diagram') content = { diagramType: 'stack', data: { items: ['TOP →', '', '', '', 'BOTTOM →'], title: 'Stack' } };
     if (type === 'image') content = { url: '', align: 'center', scale: 100, caption: '', title: '' };
+    if (type === 'webproject') content = { template: 'vanilla', files: null };
 
     try {
       const newBlock = await api.createBlock(noteId, type, orderIndex, content, language || (type === 'code' ? 'javascript' : null));
@@ -226,23 +228,6 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
           />
         </div>
         <div className="flex items-center gap-3">
-          {/* View Toggles */}
-          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg">
-            <button
-              onClick={() => onViewModeChange && onViewModeChange('roadmap')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === 'roadmap' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-white'}`}
-              title="Open Roadmap View"
-            >
-              <LayoutGrid size={12} /> Roadmap
-            </button>
-            <button
-              onClick={() => onViewModeChange && onViewModeChange('graph')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === 'graph' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-white'}`}
-              title="Open Graph View"
-            >
-              <Network size={12} /> Graph
-            </button>
-          </div>
           <div className="relative">
             <button 
               onClick={() => setShowShareModal(!showShareModal)}
@@ -411,6 +396,9 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
                   {block.type === 'image' && (
                     <ImageBlock block={block} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
                   )}
+                  {block.type === 'webproject' && (
+                    <WebProjectBlock block={block} onUpdate={(updates) => handleBlockUpdate(block.id, updates)} />
+                  )}
                 </div>
               ))}
 
@@ -463,6 +451,13 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
                           <ImageIcon size={18} />
                           <span className="text-[10px] font-medium">Image</span>
                         </button>
+                        <button
+                          onClick={() => handleAddBlock('webproject')}
+                          className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3 text-gray-300 hover:text-primary hover:bg-surface-hover rounded-lg transition-colors"
+                        >
+                          <Box size={18} />
+                          <span className="text-[10px] font-medium">Web App</span>
+                        </button>
                       </div>
                     </>
                   )}
@@ -488,6 +483,9 @@ export default function NoteEditor({ noteId, noteTitle, notebookTitle, isPublic,
                     </button>
                     <button onClick={() => handleAddBlock('image')} className="flex items-center gap-1.5 px-3 py-2 text-xs text-gray-400 border border-app-border-strong rounded-lg hover:border-primary/30 hover:text-primary transition-all">
                       <ImageIcon size={14} /> Image
+                    </button>
+                    <button onClick={() => handleAddBlock('webproject')} className="flex items-center gap-1.5 px-3 py-2 text-xs text-gray-400 border border-app-border-strong rounded-lg hover:border-primary/30 hover:text-primary transition-all">
+                      <Box size={14} /> Web App
                     </button>
                   </div>
                 </div>

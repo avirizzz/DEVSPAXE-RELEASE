@@ -66,7 +66,7 @@ export default function PublicNote() {
       <header className="h-14 px-6 border-b border-app-border flex items-center justify-between shrink-0 bg-black/80 backdrop-blur-md relative z-10">
         <div className="flex items-center gap-3">
           <Link to="/" className="w-48 h-10 overflow-hidden flex items-center justify-center">
-            <img src="/logo.png" alt="Logo" className="w-[220px] max-w-none mix-blend-screen" />
+            <img src="/logo.png" alt="Logo" className="w-[220px] max-w-none dark:mix-blend-screen dark:invert-0 mix-blend-multiply invert" />
           </Link>
           <div className="h-4 w-px bg-white/10" />
           <h1 className="text-sm font-medium text-primary-text ml-2">{note.title}</h1>

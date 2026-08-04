@@ -113,15 +113,15 @@ export default function SettingsView({ session, onClose }) {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 mb-10 border-b border-white/[0.05] pb-6"
+          className="flex items-center gap-3 mb-10 border-b border-app-border pb-6"
         >
           {onClose && (
-            <button onClick={onClose} className="text-gray-400 hover:text-white flex items-center gap-1.5 text-xs font-medium bg-white/[0.02] hover:bg-white/10 px-2.5 py-1.5 rounded-lg transition-colors mr-2">
+            <button onClick={onClose} className="text-gray-400 hover:text-primary-text flex items-center gap-1.5 text-xs font-medium bg-surface-bg hover:bg-surface-hover border border-app-border px-2.5 py-1.5 rounded-lg transition-colors mr-2">
               <ChevronLeft size={16} /> Back
             </button>
           )}
           <Settings size={28} className="text-primary" />
-          <h1 className="text-3xl font-medium tracking-tight text-white">Settings</h1>
+          <h1 className="text-3xl font-medium tracking-tight text-primary-text">Settings</h1>
         </motion.div>
 
         {/* Profile Section */}
@@ -134,11 +134,11 @@ export default function SettingsView({ session, onClose }) {
           <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
             <User size={14} /> Profile & Security
           </h2>
-          <div className="bg-[#111] border border-white/[0.05] rounded-xl p-6 shadow-xl">
+          <div className="bg-surface-bg border border-app-border rounded-xl p-6 shadow-xl">
             <div className="flex flex-col gap-5 max-w-md">
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-2">Email Address (Read Only)</label>
-                <div className="text-sm text-gray-400 bg-white/[0.02] px-4 py-2.5 rounded-lg border border-white/[0.05] w-full cursor-not-allowed">
+                <div className="text-sm text-gray-500 bg-surface-hover px-4 py-2.5 rounded-lg border border-app-border w-full cursor-not-allowed">
                   {userEmail || <span className="font-code font-bold">developer@DEVSPAXE.com</span>}
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function SettingsView({ session, onClose }) {
                   type="text" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="text-sm text-white bg-black/40 px-4 py-2.5 rounded-lg border border-white/[0.1] w-full focus:outline-none focus:border-primary/50 transition-colors"
+                  className="text-sm text-primary-text bg-surface-hover px-4 py-2.5 rounded-lg border border-app-border w-full focus:outline-none focus:border-primary/50 transition-colors"
                   placeholder="Enter a username"
                 />
               </div>
@@ -160,7 +160,7 @@ export default function SettingsView({ session, onClose }) {
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="text-sm text-white bg-black/40 px-4 py-2.5 rounded-lg border border-white/[0.1] w-full focus:outline-none focus:border-primary/50 transition-colors"
+                  className="text-sm text-primary-text bg-surface-hover px-4 py-2.5 rounded-lg border border-app-border w-full focus:outline-none focus:border-primary/50 transition-colors"
                   placeholder="Leave blank to keep current password"
                 />
               </div>
@@ -191,7 +191,7 @@ export default function SettingsView({ session, onClose }) {
           <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
             <Palette size={14} /> Appearance
           </h2>
-          <div className="bg-[#111] border border-white/[0.05] rounded-xl p-6 shadow-xl">
+          <div className="bg-surface-bg border border-app-border rounded-xl p-6 shadow-xl">
             <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-4">Accent Color</label>
             <div className="flex flex-wrap gap-4">
               {THEMES.map(theme => (
@@ -262,7 +262,7 @@ export default function SettingsView({ session, onClose }) {
           <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
             <ImageIcon size={14} /> Background Style
           </h2>
-          <div className="bg-[#111] border border-white/[0.05] rounded-xl p-6 shadow-xl">
+          <div className="bg-surface-bg border border-app-border rounded-xl p-6 shadow-xl">
             <div className="flex flex-col gap-6">
               
               <div>
@@ -270,13 +270,13 @@ export default function SettingsView({ session, onClose }) {
                 <div className="flex gap-4">
                   <button
                     onClick={() => handleBgTypeChange('video')}
-                    className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${bgType === 'video' ? 'bg-primary/10 border-primary text-primary' : 'bg-white/[0.02] border-white/[0.05] text-gray-400 hover:bg-white/[0.05]'}`}
+                    className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${bgType === 'video' ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-bg border-app-border text-gray-500 hover:bg-surface-hover'}`}
                   >
                     Cinematic Video
                   </button>
                   <button
                     onClick={() => handleBgTypeChange('solid')}
-                    className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${bgType === 'solid' ? 'bg-primary/10 border-primary text-primary' : 'bg-white/[0.02] border-white/[0.05] text-gray-400 hover:bg-white/[0.05]'}`}
+                    className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${bgType === 'solid' ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-bg border-app-border text-gray-500 hover:bg-surface-hover'}`}
                   >
                     Solid Color
                   </button>
@@ -291,7 +291,7 @@ export default function SettingsView({ session, onClose }) {
                       type="color"
                       value={bgColor}
                       onChange={handleBgColorChange}
-                      className="w-12 h-12 rounded-xl border border-white/10 cursor-pointer bg-transparent p-0"
+                      className="w-12 h-12 rounded-xl border border-app-border cursor-pointer bg-transparent p-0"
                     />
                     <div className="text-sm text-gray-400 font-mono">{bgColor.toUpperCase()}</div>
                   </div>

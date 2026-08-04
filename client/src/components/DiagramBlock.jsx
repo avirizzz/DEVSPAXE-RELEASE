@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ChevronDown, Plus, Trash2, ChevronLeft, ChevronRight, Pencil, Square, Circle, Type as TypeIcon, Eraser, ArrowUpRight, RotateCcw, Play, Pause, LayoutTemplate } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, ChevronLeft, ChevronRight, Pencil, Square, Circle, Type as TypeIcon, Eraser, ArrowUpRight, RotateCcw, Play, Pause, LayoutTemplate, MousePointer2 } from 'lucide-react';
 import { useDialog } from './DialogProvider';
 import { simulateSorting, simulateBinarySearch, simulateTreeTraversal } from '../lib/simulator';
 
@@ -1463,12 +1463,13 @@ const CANVAS_COLORS = ['#DEDBC8', '#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#
 function FreestyleDiagram({ data, updateData }) {
   const { promptAsync } = useDialog();
   const canvasRef = useRef(null);
-  const [tool, setTool] = useState('pen'); // pen | rect | circle | arrow | text | eraser
+  const [tool, setTool] = useState('pen'); // pen | rect | circle | arrow | text | eraser | select
   const [color, setColor] = useState('#DEDBC8');
   const [lineWidth, setLineWidth] = useState(2);
   const [isDrawing, setIsDrawing] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  const drawStateRef = useRef({ startX: 0, startY: 0, points: [] });
+  const [selectedShapeIdx, setSelectedShapeIdx] = useState(null);
+  const drawStateRef = useRef({ startX: 0, startY: 0, points: [], dragOffsetX: 0, dragOffsetY: 0 });
 
   const strokes = data.strokes || [];
   const shapes = data.shapes || [];
@@ -1533,10 +1534,15 @@ function FreestyleDiagram({ data, updateData }) {
     });
 
     // Draw shapes
-    shapes.forEach(s => {
-      ctx.strokeStyle = s.color || '#DEDBC8';
-      ctx.lineWidth = s.width || 2;
+    shapes.forEach((s, idx) => {
+      const isSelected = idx === selectedShapeIdx;
+      ctx.strokeStyle = isSelected ? '#d4c94a' : (s.color || '#DEDBC8');
+      ctx.lineWidth = isSelected ? (s.width || 2) + 1 : (s.width || 2);
       ctx.lineCap = 'round';
+      if (isSelected) {
+        ctx.shadowColor = '#d4c94a';
+        ctx.shadowBlur = 8;
+      }
       if (s.type === 'rect') {
         ctx.strokeRect(s.x, s.y, s.w, s.h);
       } else if (s.type === 'circle') {
@@ -1550,7 +1556,6 @@ function FreestyleDiagram({ data, updateData }) {
         ctx.moveTo(s.x, s.y);
         ctx.lineTo(s.x + s.w, s.y + s.h);
         ctx.stroke();
-        // Arrowhead
         const angle = Math.atan2(s.h, s.w);
         const headLen = 12;
         ctx.beginPath();
@@ -1560,6 +1565,7 @@ function FreestyleDiagram({ data, updateData }) {
         ctx.lineTo(s.x + s.w - headLen * Math.cos(angle + Math.PI / 6), s.y + s.h - headLen * Math.sin(angle + Math.PI / 6));
         ctx.stroke();
       }
+      ctx.shadowBlur = 0;
     });
 
     // Draw labels
@@ -1568,7 +1574,7 @@ function FreestyleDiagram({ data, updateData }) {
       ctx.font = '13px Almarai, sans-serif';
       ctx.fillText(l.text, l.x, l.y);
     });
-  }, [strokes, shapes, labels]);
+  }, [strokes, shapes, labels, selectedShapeIdx]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1590,7 +1596,29 @@ function FreestyleDiagram({ data, updateData }) {
 
   const handlePointerDown = async (e) => {
     const pos = getPos(e);
-    drawStateRef.current = { startX: pos.x, startY: pos.y, points: [pos] };
+    drawStateRef.current = { startX: pos.x, startY: pos.y, points: [pos], dragOffsetX: 0, dragOffsetY: 0 };
+
+    // SELECT/MOVE tool: hit-test shapes, pick the closest one
+    if (tool === 'select') {
+      const HIT_RADIUS = 24;
+      let found = null;
+      for (let i = shapes.length - 1; i >= 0; i--) {
+        const s = shapes[i];
+        const cx = s.x + (s.w || 0) / 2;
+        const cy = s.y + (s.h || 0) / 2;
+        if (Math.hypot(cx - pos.x, cy - pos.y) < Math.max(HIT_RADIUS, Math.abs(s.w || 0) / 2 + 10, Math.abs(s.h || 0) / 2 + 10)) {
+          found = i;
+          break;
+        }
+      }
+      setSelectedShapeIdx(found);
+      if (found !== null) {
+        drawStateRef.current.dragOffsetX = pos.x - shapes[found].x;
+        drawStateRef.current.dragOffsetY = pos.y - shapes[found].y;
+        setIsDrawing(true);
+      }
+      return;
+    }
 
     if (tool === 'text') {
       const text = await promptAsync('Add Text', 'Enter label text:', '', 'Label...');
@@ -1624,6 +1652,17 @@ function FreestyleDiagram({ data, updateData }) {
     const pos = getPos(e);
     const ctx = canvasRef.current.getContext('2d');
     const canvas = canvasRef.current;
+
+    // MOVE selected shape
+    if (tool === 'select' && selectedShapeIdx !== null) {
+      const { dragOffsetX, dragOffsetY } = drawStateRef.current;
+      const newShapes = shapes.map((s, i) => {
+        if (i !== selectedShapeIdx) return s;
+        return { ...s, x: pos.x - dragOffsetX, y: pos.y - dragOffsetY };
+      });
+      updateData({ shapes: newShapes });
+      return;
+    }
 
     if (tool === 'pen') {
       drawStateRef.current.points.push(pos);
@@ -1666,6 +1705,8 @@ function FreestyleDiagram({ data, updateData }) {
     if (!isDrawing) return;
     setIsDrawing(false);
 
+    if (tool === 'select') return; // shape already saved live during move
+
     if (tool === 'pen') {
       const newStroke = { points: drawStateRef.current.points, color, width: lineWidth };
       updateData({ strokes: [...strokes, newStroke] });
@@ -1696,6 +1737,7 @@ function FreestyleDiagram({ data, updateData }) {
   };
 
   const tools = [
+    { id: 'select', icon: MousePointer2, tip: 'Select & Move' },
     { id: 'pen', icon: Pencil, tip: 'Pen' },
     { id: 'rect', icon: Square, tip: 'Rectangle' },
     { id: 'circle', icon: Circle, tip: 'Circle' },
@@ -1787,8 +1829,8 @@ function FreestyleDiagram({ data, updateData }) {
         ref={canvasRef}
         width={720}
         height={400}
-        className="bg-[#0a0a0a] rounded-xl border border-white/5 cursor-crosshair w-full"
-        style={{ maxWidth: 720, touchAction: 'none' }}
+        className="bg-[#0a0a0a] rounded-xl border border-white/5 w-full"
+        style={{ maxWidth: 720, touchAction: 'none', cursor: tool === 'select' ? 'default' : 'crosshair' }}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
         onMouseUp={handlePointerUp}

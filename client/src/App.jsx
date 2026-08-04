@@ -59,6 +59,11 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
     localStorage.setItem('theme', theme);
   }, [theme]);
 
@@ -85,7 +90,7 @@ function App() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-app-bg text-primary-text gap-4">
         <div className="w-80 h-16 overflow-hidden flex items-center justify-center animate-pulse">
-          <img src="/logo.png" alt="Logo" className="w-[360px] max-w-none mix-blend-screen" />
+          <img src="/logo.png" alt="Logo" className="w-[360px] max-w-none dark:mix-blend-screen dark:invert-0 mix-blend-multiply invert" />
         </div>
         <div className="animate-pulse font-code font-bold text-xl">Loading...</div>
       </div>

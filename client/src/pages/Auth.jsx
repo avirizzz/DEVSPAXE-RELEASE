@@ -49,7 +49,7 @@ export default function Auth() {
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="flex items-center justify-center mb-8 select-none">
             <div className="w-80 h-16 overflow-hidden flex items-center justify-center">
-              <img src="/logo.png" alt="Logo" className="w-[360px] max-w-none mix-blend-screen" />
+              <img src="/logo.png" alt="Logo" className="w-[360px] max-w-none dark:mix-blend-screen dark:invert-0 mix-blend-multiply invert" />
             </div>
           </div>
         </Link>

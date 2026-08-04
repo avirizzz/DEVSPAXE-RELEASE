@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env
+.env.*
+!.env.example
+
+# Scratch & test scripts
+temp.css
+test_*.js

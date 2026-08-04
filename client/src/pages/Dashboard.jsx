@@ -259,7 +259,7 @@ export default function Dashboard({ session }) {
   };
 
   return (
-    <div className="flex h-screen text-primary-text overflow-hidden selection:bg-primary/30 relative bg-black">
+    <div className="flex h-screen text-primary-text overflow-hidden selection:bg-primary/30 relative bg-app-bg transition-colors duration-300">
       <div className="absolute inset-0 z-0 pointer-events-none">
         <AppBackground forceVideo={viewMode === 'editor' && !activeNoteId} />
       </div>
@@ -267,7 +267,7 @@ export default function Dashboard({ session }) {
         <Sidebar
           session={session}
           theme={theme}
-          toggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          toggleTheme={toggleTheme}
           subjects={subjects}
           setSubjects={setSubjects}
           activeSubjectId={activeSubjectId}

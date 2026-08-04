@@ -172,7 +172,7 @@ function getGreeting() {
 // ─────────────────────────────────────────────
 function StatPill({ label, value, icon: Icon }) {
   return (
-    <div className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-full px-5 py-2.5 backdrop-blur-sm">
+    <div className="flex items-center gap-3 bg-surface-bg border border-app-border rounded-full px-5 py-2.5 backdrop-blur-sm shadow-sm">
       <Icon size={13} className="text-primary/60" />
       <span className="text-primary text-sm font-medium font-mono">{value}</span>
       <span className="text-gray-500 text-[10px] uppercase tracking-widest">{label}</span>
@@ -196,8 +196,8 @@ function NotebookCard({ notebook, noteCount, index, onSelect }) {
       transition={{ duration: 0.3 }}
     >
       {/* Card body */}
-      <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 h-full
-        group-hover:border-white/[0.12] group-hover:bg-white/[0.04] transition-all duration-500">
+      <div className="relative bg-surface-bg backdrop-blur-xl border border-app-border rounded-2xl p-6 h-full
+        group-hover:border-app-border-strong group-hover:bg-surface-hover transition-all duration-500 shadow-sm">
 
         {/* Top accent line */}
         <div
@@ -217,7 +217,7 @@ function NotebookCard({ notebook, noteCount, index, onSelect }) {
         </div>
 
         {/* Title */}
-        <h3 className="text-[#E1E0CC] text-base font-medium mb-1.5 truncate group-hover:text-white transition-colors duration-300">
+        <h3 className="text-primary-text text-base font-medium mb-1.5 truncate transition-colors duration-300">
           {notebook.title}
         </h3>
         <p className="text-gray-600 text-[10px] font-mono">
@@ -249,15 +249,15 @@ function RecentNoteRow({ note, notebookTitle, onSelect }) {
   return (
     <motion.button
       onClick={onSelect}
-      className="w-full group flex items-center gap-4 px-5 py-4 text-left hover:bg-white/[0.025] transition-all duration-300"
+      className="w-full group flex items-center gap-4 px-5 py-4 text-left hover:bg-surface-hover transition-all duration-300"
       whileHover={{ x: 4 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="w-9 h-9 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center shrink-0 group-hover:border-primary/20 group-hover:bg-primary/[0.04] transition-all duration-300">
+      <div className="w-9 h-9 rounded-xl bg-surface-bg border border-app-border flex items-center justify-center shrink-0 group-hover:border-primary/20 group-hover:bg-primary/[0.04] transition-all duration-300 shadow-sm">
         <FileText size={14} className="text-gray-500 group-hover:text-primary transition-colors duration-300" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[#E1E0CC] text-sm truncate group-hover:text-white transition-colors duration-300">
+        <p className="text-primary-text text-sm truncate transition-colors duration-300">
           {note.title || 'Untitled Note'}
         </p>
         <p className="text-gray-600 text-[10px] font-mono truncate mt-0.5">
@@ -278,7 +278,7 @@ function QuickAction({ label, desc, icon: Icon, onClick, accent = 'var(--color-p
   return (
     <motion.button
       onClick={onClick}
-      className="group bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] hover:border-white/[0.12] hover:bg-white/[0.04] rounded-2xl p-5 text-left transition-all duration-500 cursor-pointer"
+      className="group bg-surface-bg backdrop-blur-xl border border-app-border hover:border-app-border-strong hover:bg-surface-hover rounded-2xl p-5 text-left transition-all duration-500 cursor-pointer shadow-sm"
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
     >
@@ -288,7 +288,7 @@ function QuickAction({ label, desc, icon: Icon, onClick, accent = 'var(--color-p
       >
         <Icon size={16} style={{ color: accent }} className="group-hover:opacity-100 opacity-60 transition-opacity" />
       </div>
-      <p className="text-[#E1E0CC] text-sm font-medium group-hover:text-white transition-colors duration-300">{label}</p>
+      <p className="text-primary-text text-sm font-medium transition-colors duration-300">{label}</p>
       <p className="text-gray-600 text-[10px] mt-1">{desc}</p>
     </motion.button>
   );
@@ -299,7 +299,7 @@ function SubjectCard({ subject, notebookCount, index, onSelect, onRename, onDele
   return (
     <motion.div
       onClick={() => onSelect(subject.id)}
-      className="group bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.12] rounded-2xl p-4 flex items-center gap-4 text-left transition-all duration-500 cursor-pointer relative w-full"
+      className="group bg-surface-bg backdrop-blur-xl border border-app-border hover:bg-surface-hover hover:border-app-border-strong rounded-2xl p-4 flex items-center gap-4 text-left transition-all duration-500 cursor-pointer relative w-full shadow-sm"
       whileHover={{ x: 4 }}
       whileTap={{ scale: 0.98 }}
     >
@@ -307,14 +307,14 @@ function SubjectCard({ subject, notebookCount, index, onSelect, onRename, onDele
         <Library size={16} className="text-primary group-hover:opacity-100 opacity-80 transition-opacity" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[#E1E0CC] text-sm font-medium truncate group-hover:text-white transition-colors duration-300">{subject.title}</p>
+        <p className="text-primary-text text-sm font-medium truncate transition-colors duration-300">{subject.title}</p>
         <p className="text-gray-500 text-[10px] uppercase tracking-wider mt-1">{notebookCount} {notebookCount === 1 ? 'notebook' : 'notebooks'}</p>
       </div>
 
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shrink-0 bg-white/[0.02] p-1 rounded-lg border border-white/[0.05]">
+      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shrink-0 bg-surface-bg p-1 rounded-lg border border-app-border">
         <button
           onClick={async (e) => { e.stopPropagation(); const newTitle = await promptAsync('Rename Subject', 'Enter new title:', subject.title); if (newTitle) onRename(subject.id, newTitle); }}
-          className="p-1.5 text-gray-500 hover:text-white rounded-md hover:bg-white/10 transition-colors"
+          className="p-1.5 text-gray-500 hover:text-primary-text rounded-md hover:bg-surface-hover transition-colors"
           title="Rename"
         >
           <Edit2 size={13} />
@@ -395,7 +395,7 @@ export default function HomeView({ subjects = [], notebooks, session, activeSubj
 
             <WordsPullUp
               text={activeSubjectId ? (subjects.find(s => s.id === activeSubjectId)?.title || 'Subject') : `${greeting},`}
-              className="text-5xl md:text-7xl font-medium leading-[0.9] tracking-[-0.04em] text-[#E1E0CC]/80"
+              className="text-5xl md:text-7xl font-medium leading-[0.9] tracking-[-0.04em] text-primary-text/80"
             />
             {!activeSubjectId && (
               <div className="mt-1">
@@ -538,13 +538,13 @@ export default function HomeView({ subjects = [], notebooks, session, activeSubj
                     <FadeSlideIn delay={1.2}>
                       <motion.button
                         onClick={() => onCreateNotebook && onCreateNotebook()}
-                        className="w-full border border-dashed border-white/[0.06] hover:border-primary/20 rounded-[2rem] py-16 text-center transition-all duration-500 group cursor-pointer bg-[#0c0c0c] hover:bg-[#0e0e0e]"
+                        className="w-full border border-dashed border-app-border hover:border-primary/20 rounded-[2rem] py-16 text-center transition-all duration-500 group cursor-pointer bg-surface-bg hover:bg-surface-hover"
                         whileHover={{ scale: 1.005 }}
                       >
-                        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center group-hover:border-primary/20 group-hover:bg-primary/[0.05] transition-all duration-500">
+                        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-surface-bg border border-app-border flex items-center justify-center group-hover:border-primary/20 group-hover:bg-primary/[0.05] transition-all duration-500 shadow-sm">
                           <Sparkles size={28} className="text-gray-600 group-hover:text-primary transition-colors duration-500" />
                         </div>
-                        <p className="text-[#E1E0CC] text-lg font-medium group-hover:text-white transition-colors">Create your first notebook</p>
+                        <p className="text-primary-text text-lg font-medium transition-colors">Create your first notebook</p>
                         <p className="text-gray-600 text-xs mt-2">Start organizing your concepts and code</p>
                       </motion.button>
                     </FadeSlideIn>
@@ -575,7 +575,7 @@ export default function HomeView({ subjects = [], notebooks, session, activeSubj
                   <div className="w-1 h-5 bg-primary/20 rounded-full" />
                   <h2 className="text-[11px] font-bold text-gray-400 tracking-[0.2em] uppercase">Recent Activity</h2>
                 </div>
-                <div className="bg-[#0e0e0e] border border-white/[0.04] rounded-2xl overflow-hidden divide-y divide-white/[0.03]">
+                <div className="bg-surface-bg border border-app-border rounded-2xl overflow-hidden divide-y divide-app-border shadow-xl">
                   {recentNotes.map((note) => (
                     <RecentNoteRow
                       key={note.id}

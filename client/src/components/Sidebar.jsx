@@ -466,9 +466,9 @@ export default function Sidebar({
       <div className={`h-14 px-3 flex items-center border-b border-app-border shrink-0 whitespace-nowrap ${collapsed ? 'justify-center' : 'justify-between'}`}>
         {!collapsed && (
           <div className="flex items-center gap-2 overflow-hidden cursor-pointer" onClick={onGoHome}>
-            <div className="flex items-center gap-2 px-1 py-1">
-              <div className="w-48 h-10 overflow-hidden flex items-center justify-center">
-                <img src="/logo.png" alt="Logo" className="w-[220px] max-w-none mix-blend-screen" />
+            <div className="flex items-center gap-2 px-1 py-1 w-full">
+              <div className="w-56 overflow-hidden flex items-center justify-start -ml-1">
+                <img src="/transplogo.png" alt="DEVSPAXE" className="w-[200px] max-w-none object-contain" />
               </div>
             </div>
           </div>

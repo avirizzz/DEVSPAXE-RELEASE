@@ -389,13 +389,19 @@ export default function GraphView({ allNotes, onSelectNote, onClose }) {
         });
       }
 
+      /* Theme variables */
+      const isDark = document.documentElement.classList.contains('dark');
+      const baseRGB = isDark ? '255,255,255' : '0,0,0';
+      const textRGB = isDark ? '200,200,190' : '50,50,50';
+      const highlightHex = isDark ? '#fff' : '#000';
+
       /* Linking dashed line */
       if (linkingFrom) {
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(linkingFrom.x, linkingFrom.y);
         ctx.lineTo(mouse.worldX, mouse.worldY);
-        ctx.strokeStyle = 'rgba(222, 219, 200, 0.7)';
+        ctx.strokeStyle = `rgba(${baseRGB}, 0.5)`;
         ctx.setLineDash([6 * iz, 4 * iz]);
         ctx.lineWidth = 2 * iz;
         ctx.stroke();
@@ -438,12 +444,12 @@ export default function GraphView({ allNotes, onSelectNote, onClose }) {
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
         } else if (isFaded) {
-          ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+          ctx.strokeStyle = `rgba(${baseRGB},0.03)`;
           ctx.lineWidth = 1 * iz;
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
         } else {
-          ctx.strokeStyle = crossNotebook ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.12)';
+          ctx.strokeStyle = crossNotebook ? `rgba(${baseRGB},0.08)` : `rgba(${baseRGB},0.15)`;
           ctx.lineWidth = 1 * iz;
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
@@ -503,9 +509,9 @@ export default function GraphView({ allNotes, onSelectNote, onClose }) {
         if (isLinkTarget) {
           ctx.fillStyle = '#22c55e';
         } else if (isFaded) {
-          ctx.fillStyle = 'rgba(60,60,60,0.25)';
+          ctx.fillStyle = `rgba(${baseRGB},0.1)`;
         } else if (isHov) {
-          ctx.fillStyle = '#fff';
+          ctx.fillStyle = highlightHex;
         } else {
           ctx.fillStyle = colors.node;
         }
@@ -526,7 +532,7 @@ export default function GraphView({ allNotes, onSelectNote, onClose }) {
         if (!isFaded || isLinkTarget) {
           const fontSize = isHov || isLinkTarget ? 12 : 10;
           ctx.font = `${isHov ? 'bold ' : ''}${fontSize}px 'Almarai', sans-serif`;
-          ctx.fillStyle = isHov || isLinkTarget ? '#fff' : `rgba(${isFaded ? '80,80,80' : '200,200,190'},${isFaded ? '0.3' : '0.65'})`;
+          ctx.fillStyle = isHov || isLinkTarget ? highlightHex : `rgba(${isFaded ? '120,120,120' : textRGB},${isFaded ? '0.3' : '0.8'})`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'top';
           ctx.fillText(n.title, n.x, n.y + r + 5);
@@ -741,13 +747,13 @@ export default function GraphView({ allNotes, onSelectNote, onClose }) {
 
   /* ═══════ RENDER ═══════ */
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-[#060608] relative select-none">
+    <div className="flex-1 flex flex-col min-w-0 bg-app-bg transition-colors duration-300 relative select-none">
       {/* Subtle gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0"
         style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(30,30,50,0.4) 0%, transparent 70%)' }} />
 
       {/* Header */}
-      <header className="h-12 px-5 border-b border-white/[0.04] flex items-center justify-between shrink-0 bg-black/40 backdrop-blur-xl relative z-20">
+      <header className="h-12 px-5 border-b border-app-border flex items-center justify-between shrink-0 bg-surface-bg/80 backdrop-blur-xl relative z-20">
         <div className="flex items-center gap-3">
           {onClose && (
             <>
@@ -757,10 +763,10 @@ export default function GraphView({ allNotes, onSelectNote, onClose }) {
               <div className="w-px h-4 bg-white/10 mx-1" />
             </>
           )}
-          <div className="w-6 h-6 rounded-md bg-white/[0.04] flex items-center justify-center">
-            <Network size={13} className="text-[#DEDBC8]" />
+          <div className="w-6 h-6 rounded-md bg-surface-hover flex items-center justify-center">
+            <Network size={13} className="text-primary" />
           </div>
-          <h2 className="text-[13px] font-medium text-[#DEDBC8] tracking-tight">Second Brain</h2>
+          <h2 className="text-[13px] font-medium text-primary tracking-tight">Second Brain</h2>
           <div className="flex items-center gap-2 ml-2">
             <span className="text-[10px] text-gray-500 bg-white/[0.03] px-2 py-0.5 rounded-full font-mono">
               {stats.nodes} nodes
@@ -820,8 +826,8 @@ export default function GraphView({ allNotes, onSelectNote, onClose }) {
             className="absolute z-30 pointer-events-none"
             style={{ left: tooltip.x + 14, top: tooltip.y - 10 }}
           >
-            <div className="bg-[#111113] border border-white/[0.08] rounded-lg px-3 py-2 shadow-2xl min-w-[140px]">
-              <p className="text-[12px] font-medium text-white truncate max-w-[200px]">{tooltip.title}</p>
+            <div className="bg-surface-hover border border-app-border rounded-lg px-3 py-2 shadow-2xl min-w-[140px]">
+              <p className="text-[12px] font-medium text-primary-text truncate max-w-[200px]">{tooltip.title}</p>
               {tooltip.notebook && (
                 <p className="text-[10px] text-gray-500 mt-0.5">{tooltip.notebook}</p>
               )}
