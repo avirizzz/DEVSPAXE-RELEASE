@@ -106,7 +106,7 @@ function releaseSlot() {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_CODE_LENGTH = 50_000;  // 50k characters max
-const EXEC_TIMEOUT_MS = 8_000;   // 8 second execution timeout per job
+const EXEC_TIMEOUT_MS = 15_000;  // 15 second execution timeout per job
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /**
@@ -118,7 +118,7 @@ function runBinary(bin, args, options = {}) {
     execFile(bin, args, { timeout: EXEC_TIMEOUT_MS, ...options }, (error, stdout, stderr) => {
       resolve({
         output: stdout || '',
-        error: stderr || (error ? (error.killed ? 'Execution timed out (8s limit)' : error.message) : ''),
+        error: stderr || (error ? (error.killed ? 'Execution timed out (15s limit)' : error.message) : ''),
         exitCode: error ? (error.code || 1) : 0,
       });
     });
